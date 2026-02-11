@@ -1,9 +1,7 @@
 #include "maplinestring.h"
 #include "mappoint.h"
 
-MapLineString::MapLineString(QObject* parent) : MapGeometry(parent) {
-    setCanCloseCapability(true);
-}
+MapLineString::MapLineString(QObject* parent) : MapGeometry(parent) {}
 
 QGeoPath MapLineString::path() const {
     QGeoPath path;
