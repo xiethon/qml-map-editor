@@ -42,7 +42,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
         assets/lock.svg
         assets/unlock.svg
         assets/delete.svg
-        assets/point.svg
+        assets/marker.svg
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
