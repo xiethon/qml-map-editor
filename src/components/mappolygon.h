@@ -24,14 +24,14 @@ public:
     MapPolygon(const MapPolygon&) = delete;
     MapPolygon& operator=(const MapPolygon&) = delete;
 
-    QGeoPath path() const;
-    void append(QGeoCoordinate coordinate);
-    bool valid() const;
-    QVariantList mapPoints() const;
+    QGeoPath path() const; //! geopath路径
+    void append(QGeoCoordinate coordinate); //! 插入一个点
+    bool valid() const; //! 是否有效的多边形
+    QVariantList mapPoints() const; //! 获取所有点
     void closeGeometry(); //! 闭合几何对象
-    Q_INVOKABLE void setSelectedPoint(const QString& uuid);
-    void clearAllPointSelected();
-    void setSelected(bool selected) override;
+    Q_INVOKABLE void setSelectedPoint(const QString& uuid); //! 设置选中点
+    void clearAllPointSelected(); //! 清除所有点的选中状态
+    void setSelected(bool selected) override; //! 设置选中状态
 
 signals:
     void pathChanged();
