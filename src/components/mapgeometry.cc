@@ -2,6 +2,10 @@
 
 MapGeometry::MapGeometry(QObject* parent) : QObject(parent) {}
 
+QString MapGeometry::uuid() const {
+    return _uuid;
+}
+
 bool MapGeometry::selected() const {
     return _selected;
 }
@@ -19,28 +23,9 @@ bool MapGeometry::closed() const {
 }
 
 void MapGeometry::setClosed(bool closed) {
-    if (!_can_close && closed) {
-        return;
-    }
     if (_closed == closed) {
         return;
     }
     _closed = closed;
     emit closedChanged();
-}
-
-bool MapGeometry::canClose() const {
-    return _can_close;
-}
-
-void MapGeometry::setCanCloseCapability(bool can_close) {
-    if (_can_close == can_close) {
-        return;
-    }
-    _can_close = can_close;
-    emit canCloseChanged();
-    if (!_can_close && _closed) {
-        _closed = false;
-        emit closedChanged();
-    }
 }
