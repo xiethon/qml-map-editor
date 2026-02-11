@@ -29,12 +29,4 @@ ColumnLayout{
         enabled: !app.editorController.locked
         onClicked: app.editorController.deleteSelected()
     }
-
-    //! 闭合按钮
-    MapEditorActionButton {
-        source: "qrc:/qt/qml/map/editor/assets/closed.svg"
-        toolTipText: qsTr("Close Current Geometry")
-        enabled: !app.editorController.locked && app.editorController.canClose
-        onClicked: app.editorController.closeCurrentGeometry()
-    }
 }

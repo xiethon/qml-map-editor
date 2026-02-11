@@ -8,11 +8,11 @@ RowLayout{
     spacing: 2
 
     Button {
-        text: qsTr("Point")
+        text: qsTr("Marker")
         checkable: true
         enabled: !app.editorController.locked
-        checked: app.editorController.editMode === MapEditorController.POINT
-        onClicked: app.editorController.editMode = MapEditorController.POINT
+        checked: app.editorController.editMode === MapEditorController.MARKER
+        onClicked: app.editorController.editMode = MapEditorController.MARKER
     }
     Button {
         text: qsTr("Linestring")

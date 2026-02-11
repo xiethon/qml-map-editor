@@ -30,12 +30,13 @@ EditorMap {
 
     //! 标记点列表
     MapItemView {
-        id: mapPointListView
+        enabled: !app.editorController.locked
+        id: mapMarkerListView
         z: 1
-        model: app.editorController.mapPoints
-        delegate: MapPointItem {
+        model: app.editorController.mapMarkers
+        delegate: MapMarkerItem {
             coordinate: modelData.coordinate
-            source: "qrc:/qt/qml/map/editor/assets/point.svg"
+            source: "qrc:/qt/qml/map/editor/assets/marker.svg"
             color: modelData.selected ? "red" : "white"
             MouseArea {
                 anchors.fill: parent
@@ -44,9 +45,9 @@ EditorMap {
                 acceptedButtons: Qt.LeftButton
                 onClicked: (mouse) => {
                     if (mouse.modifiers & Qt.ControlModifier) {
-                        app.editorController.setSelectedItem(modelData.id)
+                        app.editorController.setSelectedItem(modelData.uuid)
                     } else {
-                        app.editorController.setSelectedItemAndClearOthers(modelData.id)
+                        app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
                     }
                 }
             } 
@@ -56,24 +57,45 @@ EditorMap {
     //! 多边形列表
     MapItemView {
         id: mapPolygonListView
+        enabled: !app.editorController.locked
         z: 1
         model: app.editorController.mapPolygons
         delegate: MapPolygonItem {
-            path: modelData.path
-            selected: modelData.selected
+            id: _mapPolygonItem
+            map: editorMap
             color: "white"
+            edgeColor: "blue"
+
+            closed: modelData.closed
+            selected: modelData.selected
+            mapPoints: modelData.mapPoints
+
+            onPolygonClicked: {
+                app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
+            }
+            onPointClicked: (uuid) => {
+                app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
+                modelData.setSelectedPoint(uuid)
+            }
         }
     }
 
     MouseArea {
         anchors.fill: parent
         enabled: !app.editorController.locked
-        acceptedButtons: Qt.LeftButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        //! 双击左键地图时，添加一个点
         onDoubleClicked: (mouse) => {
-            app.editorController.append(editorMap.toCoordinate(Qt.point(mouse.x, mouse.y), false))
+            if (mouse.button === Qt.LeftButton) {
+                app.editorController.append(editorMap.toCoordinate(Qt.point(mouse.x, mouse.y)))
+            }
         }
+
+        //! 结束当前当前编辑对象的操作
         onClicked: (mouse) => {
-            app.editorController.clearAllSelected()
+            if (mouse.button === Qt.RightButton) {
+                app.editorController.finishCurrentEditing()
+            }
         }
     }
 }
