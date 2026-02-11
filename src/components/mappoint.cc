@@ -1,34 +1,22 @@
 #include "mappoint.h"
-#include <atomic>
 
-//! 线程安全的ID生成器
-static std::atomic<int> g_mappoint_id{1};
-
-MapPoint::MapPoint(QObject* parent) : MapGeometry(parent), _id(g_mappoint_id.fetch_add(1, std::memory_order_relaxed)) {
-    setCanCloseCapability(false);
+MapPoint::MapPoint(QObject* parent) : MapGeometry(parent) {
+    setClosed(true);
 }
 
-MapPoint::MapPoint(const QGeoCoordinate& coordinate, QObject* parent) :
-    MapGeometry(parent),
-    _coordinate(coordinate),
-    _id(g_mappoint_id.fetch_add(1, std::memory_order_relaxed)) {
-    setCanCloseCapability(false);
+MapPoint::MapPoint(const QGeoCoordinate& coordinate, QObject* parent) : MapGeometry(parent), _coordinate(coordinate) {
+    setClosed(true);
 }
 
 MapPoint::MapPoint(double latitude, double longitude, QObject* parent) :
     MapGeometry(parent),
-    _coordinate(latitude, longitude),
-    _id(g_mappoint_id.fetch_add(1, std::memory_order_relaxed)) {
-    setCanCloseCapability(false);
+    _coordinate(latitude, longitude) {
+    setClosed(true);
 }
 
 bool MapPoint::operator==(const MapPoint& other) const {
     return qFuzzyCompare(_coordinate.latitude(), other._coordinate.latitude()) &&
            qFuzzyCompare(_coordinate.longitude(), other._coordinate.longitude());
-}
-
-int MapPoint::id() const {
-    return _id;
 }
 
 QGeoCoordinate MapPoint::coordinate() const {

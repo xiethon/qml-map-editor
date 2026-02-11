@@ -9,7 +9,6 @@ class MapPoint : public MapGeometry {
     QML_ELEMENT
 
     Q_PROPERTY(QGeoCoordinate coordinate READ coordinate WRITE setCoordinate NOTIFY coordinateChanged) //! 坐标
-    Q_PROPERTY(int id READ id CONSTANT) //! 唯一ID
     Q_PROPERTY(double latitude READ latitude WRITE setLatitude NOTIFY coordinateChanged) //! 纬度
     Q_PROPERTY(double longitude READ longitude WRITE setLongitude NOTIFY coordinateChanged) //! 经度
 
@@ -23,8 +22,6 @@ public:
     MapPoint(const MapPoint&) = delete;
     MapPoint& operator=(const MapPoint&) = delete;
     bool operator==(const MapPoint& other) const;
-
-    int id() const;
 
     QGeoCoordinate coordinate() const;
     void setCoordinate(const QGeoCoordinate& coordinate);
@@ -40,5 +37,4 @@ signals:
 
 private:
     QGeoCoordinate _coordinate{0.0, 0.0};
-    const int _id;
 };
