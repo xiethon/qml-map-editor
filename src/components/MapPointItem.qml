@@ -1,49 +1,45 @@
-//! MapPointItem.qml
-
 import QtQuick
 import QtQuick.Controls
 import QtLocation
 import QtPositioning
-import QtQuick.Effects
 
 MapQuickItem {
     id: _control
-    anchorPoint.x: sourceImg.width/2
-    anchorPoint.y: sourceImg.height
-    property alias source: sourceImg.source
-    property var sourceSize: 24
-    property var color: "white"
-    HoverHandler {
-        id: hoverHandler
-    }
 
-    DragHandler {
-        id: dragHandler
-        grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType
-    }
+    property var size: 10
+    property var color : "blue"
+	property bool selected: false
 
+    property var _radius: size / 2
+    anchorPoint.x:              _radius
+    anchorPoint.y:              _radius
     sourceItem: Item {
-		implicitWidth:  _control.sourceSize
-		implicitHeight: _control.sourceSize
-		Image {
-			id: sourceImg
-			anchors.centerIn: parent
-			visible: false
-			sourceSize: Qt.size(_control.sourceSize, _control.sourceSize)
-			fillMode: Image.PreserveAspectFit
-			smooth: true
-			asynchronous: true
-		}
+        id:                     _item
+        width:                  _control.size 
+        height:                 _control.size
+        Canvas {
+            id:                 pointCanvas
+            anchors.fill:       parent
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
 
-		MultiEffect {
-			anchors.fill: sourceImg
-			source: sourceImg
-			brightness: 1.0
-			colorization: 1.0
-			colorizationColor: _control.color
-			opacity: _control.enabled ? 1.0 : 0.6
-			visible: _control.source !== ""
-		}
+                if(_control.selected){
+                    ctx.beginPath();
+                    ctx.fillStyle =  "white";
+                    ctx.arc(_control._radius , _control._radius , _control._radius , 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                //! 绘制小圈
+                ctx.beginPath();
+                ctx.fillStyle =  _control.color;
+                ctx.arc(_control._radius , _control._radius , _control._radius * 0.6 , 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+    onSelectedChanged: {
+        pointCanvas.requestPaint();
     }
 }
 
