@@ -21,10 +21,6 @@ MapQuickItem {
 
 	signal dragFinished()	//! 拖动结束信号
 
-    HoverHandler {
-        id: hoverHandler
-    }
-
     DragHandler {
         id: dragHandler
         grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType
