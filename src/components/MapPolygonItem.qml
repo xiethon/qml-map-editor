@@ -8,8 +8,8 @@ MapItemGroup{
  
     property var map
     property var color : "blue"         //! 多边形颜色
-    property var vertexColor : "blue"  //! 顶点颜色
-    property var edgeColor : "blue"     //! 边颜色
+    property var pointColor : "blue"  //! 顶点颜色
+    property var lineColor : "blue"     //! 边颜色
 
     property bool selected: false     //! 是否选中
     property bool closed: false       //! 是否闭合
@@ -34,7 +34,7 @@ MapItemGroup{
         id:             polygonItem
         path:           _control._visualPath
         color:          _control.color
-        opacity:        _control.selected ? 0.5 : 0.2
+        opacity:        _control.selected ? 0.6 : 0.1
         border{
             width: 1
             color: polygonItem.color
@@ -42,9 +42,7 @@ MapItemGroup{
         TapHandler {
             gesturePolicy: TapHandler.ReleaseWithinBounds
             enabled: !_control.selected
-            onTapped: {
-                polygonClicked();
-            }
+            onTapped: polygonClicked();
         }
     }
 
@@ -54,9 +52,8 @@ MapItemGroup{
         path: _control._path
         line{
             width: 2
-            color: _control.edgeColor
-        }
-        
+            color: _control.lineColor
+        }  
     }
 
     //! 多边形close虚线（虚线显示）
@@ -66,7 +63,7 @@ MapItemGroup{
         visible:            mouseArea.enabled
         start:              _control._path.length > 0 ? _control._path[_control._path.length - 1] : null
         end:                _control._mouseCoordinate
-        color:              "red"
+        color:              lineColor
         solid:              false
         selected:           true
     }
@@ -82,13 +79,10 @@ MapItemGroup{
             onCoordinateChanged: {
                 modelData.coordinate = coordinate
             }
-            color:              _control.vertexColor
+            color:              _control.pointColor
             TapHandler {
                 gesturePolicy: TapHandler.ReleaseWithinBounds
-                onTapped: (tapEvent) => {
-                    //tapEvent.accepted = true;
-                    pointClicked(modelData.uuid);
-                }
+                onTapped: pointClicked(modelData.uuid);
             }
             DragHandler {
                 id: handler

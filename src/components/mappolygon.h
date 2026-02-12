@@ -14,7 +14,6 @@ class MapPolygon : public MapGeometry {
     Q_MOC_INCLUDE("mappoint.h")
 
     Q_PROPERTY(QGeoPath path READ path NOTIFY pathChanged) //! 点列表
-    Q_PROPERTY(bool valid READ valid NOTIFY pathChanged) //! 是否闭合
     Q_PROPERTY(QVariantList mapPoints READ mapPoints NOTIFY pathChanged) //! 点列表
 
 public:
@@ -25,13 +24,14 @@ public:
     MapPolygon& operator=(const MapPolygon&) = delete;
 
     QGeoPath path() const; //! geopath路径
-    void append(QGeoCoordinate coordinate); //! 插入一个点
-    bool valid() const; //! 是否有效的多边形
+
     QVariantList mapPoints() const; //! 获取所有点
-    void closeGeometry(); //! 闭合几何对象
-    Q_INVOKABLE void setSelectedPoint(const QString& uuid); //! 设置选中点
-    void clearAllPointSelected(); //! 清除所有点的选中状态
-    void setSelected(bool selected) override; //! 设置选中状态
+
+    bool valid() const override; //! 是否有效的多边形
+    QList<MapGeometry*> children() const override; //! 获取children
+
+    void removeSelectedChild() override; //! 删除选中子项
+    void appendChild(QGeoCoordinate coordinate) override; //! 在子项中添加一个点
 
 signals:
     void pathChanged();
