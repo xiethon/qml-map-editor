@@ -54,3 +54,15 @@ void MapPoint::setLongitude(double longitude) {
     _coordinate.setLongitude(longitude);
     emit coordinateChanged();
 }
+
+QString MapPoint::address() const {
+    return _address;
+}
+
+void MapPoint::setAddress(const QString& address) {
+    if (_address == address) {
+        return;
+    }
+    _address = address;
+    emit coordinateChanged();
+}

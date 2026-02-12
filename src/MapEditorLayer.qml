@@ -36,8 +36,11 @@ EditorMap {
         model: app.editorController.mapMarkers
         delegate: MapMarkerItem {
             coordinate: modelData.coordinate
+            address: modelData.address
+            selected: modelData.selected
             source: "qrc:/qt/qml/map/editor/assets/marker.svg"
             color: modelData.selected ? "red" : "white"
+            
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true  
@@ -50,14 +53,30 @@ EditorMap {
                         app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
                     }
                 }
-            } 
+            }
+            Component.onCompleted: {
+                //! 逆地理编码获取地址信息
+                if (modelData.address === "" && modelData.selected) {
+                    editorMap.reverseGeocode(modelData.coordinate, (address, error) => {
+                        modelData.address = address
+                    })
+                }
+            }
+            onCoordinateChanged: {
+                modelData.coordinate = coordinate
+            }
+            onDragFinished: {
+                editorMap.reverseGeocode(modelData.coordinate, (address, error) => {
+                        modelData.address = address
+                    })
+            }
         }
     }
 
     //! 多边形列表
     MapItemView {
         id: mapPolygonListView
-        enabled: !app.editorController.locked
+        enabled: !app.editorController.locked && app.editorController.editMode === MapEditorController.POLYGON
         z: 1
         model: app.editorController.mapPolygons
         delegate: MapPolygonItem {

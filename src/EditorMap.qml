@@ -8,7 +8,7 @@ import map.editor.components
 Map {
     id:map
     plugin: Plugin {
-        id: taindituPlugin
+        id: tiandituPlugin
         name: "Tianditu"
         PluginParameter {
             name: "Tianditu.token"
@@ -49,6 +49,60 @@ Map {
 
     Component.onCompleted: {
         setActiveMap("Tianditu", MapType.SatelliteMapDay); //! 卫星影像图
+    }
+
+    //! 逆地理编码模型
+    GeocodeModel {
+        id: reverseGeocodeModel
+        plugin: tiandituPlugin
+        autoUpdate: false
+        
+        property var _callback: null
+        property int _queryId: 0
+        property int _processedId: -1
+        
+        function _handleResult() {
+            if (_callback && _queryId !== _processedId) {
+                _processedId = _queryId
+                if (count > 0) {
+                    var location = get(0)
+                    _callback(location.address.text, null)
+                } else {
+                    _callback("", "未找到地址")
+                }
+                _callback = null
+            }
+        }
+        
+        onStatusChanged: {
+            if (status === GeocodeModel.Ready) {
+                _handleResult()
+            } else if (status === GeocodeModel.Error) {
+                if (_callback) {
+                    _processedId = _queryId
+                    _callback("", errorString)
+                    _callback = null
+                }
+            }
+        }
+        
+        onLocationsChanged: {
+            if (status === GeocodeModel.Ready) {
+                _handleResult()
+            }
+        }
+    }
+
+    //! 根据coordinate对象获取地址名称（回调方式）
+    function reverseGeocode(coordinate, callback) {
+        if (!coordinate || !coordinate.isValid) {
+            if (callback) callback("", "无效的坐标")
+            return
+        }
+        reverseGeocodeModel._queryId++
+        reverseGeocodeModel._callback = callback
+        reverseGeocodeModel.query = coordinate
+        reverseGeocodeModel.update()
     }
 
     function setActiveMap(name,style) {
