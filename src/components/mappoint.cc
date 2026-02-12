@@ -1,17 +1,16 @@
 #include "mappoint.h"
+#include "mapgeometry.h"
 
-MapPoint::MapPoint(QObject* parent) : MapGeometry(parent) {
+MapPoint::MapPoint(QObject* parent) : MapGeometry(MapGeometry::GeometryType::Point, parent) {
     setClosed(true);
+    setValid(true);
 }
 
-MapPoint::MapPoint(const QGeoCoordinate& coordinate, QObject* parent) : MapGeometry(parent), _coordinate(coordinate) {
+MapPoint::MapPoint(const QGeoCoordinate& coordinate, QObject* parent) :
+    MapGeometry(MapGeometry::GeometryType::Point, parent),
+    _coordinate(coordinate) {
     setClosed(true);
-}
-
-MapPoint::MapPoint(double latitude, double longitude, QObject* parent) :
-    MapGeometry(parent),
-    _coordinate(latitude, longitude) {
-    setClosed(true);
+    setValid(true);
 }
 
 bool MapPoint::operator==(const MapPoint& other) const {

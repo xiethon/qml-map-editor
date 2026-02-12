@@ -16,7 +16,6 @@ class MapPoint : public MapGeometry {
 public:
     explicit MapPoint(QObject* parent = nullptr);
     explicit MapPoint(const QGeoCoordinate& coordinate, QObject* parent = nullptr);
-    explicit MapPoint(double latitude, double longitude, QObject* parent = nullptr);
 
     ~MapPoint() override = default;
 
