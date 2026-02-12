@@ -2,8 +2,8 @@ set(qml_files
     MapMarkerItem.qml
     MapPointItem.qml
     MapLinestringItem.qml
-    MapPolygonItem.qml
     MapSegmentItem.qml
+    MapPolygonItem.qml
 )
  
 set(sources

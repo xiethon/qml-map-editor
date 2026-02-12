@@ -14,8 +14,7 @@ class MapLineString : public MapGeometry {
     Q_MOC_INCLUDE("mappoint.h")
 
     Q_PROPERTY(QGeoPath path READ path NOTIFY pathChanged) //! 路径
-    Q_PROPERTY(QVariantList points READ points NOTIFY pathChanged) //! 点数量
-    Q_PROPERTY(int size READ size NOTIFY sizeChanged) //! 点数量
+    Q_PROPERTY(QVariantList mapPoints READ mapPoints NOTIFY pathChanged) //! 点列表
 
 public:
     explicit MapLineString(QObject* parent = nullptr);
@@ -25,14 +24,16 @@ public:
     MapLineString& operator=(const MapLineString&) = delete;
 
     QGeoPath path() const;
-    QVariantList points() const;
+    QVariantList mapPoints() const;
 
-    int size() const;
-    void append(QGeoCoordinate coordinate);
+    bool valid() const override;
+
+    QList<MapGeometry*> children() const override; //! 获取children
+    void removeSelectedChild() override; //! 删除选中子项
+    void appendChild(QGeoCoordinate coordinate) override; //! 在子项中添加一个点
 
 signals:
     void pathChanged();
-    void sizeChanged();
 
 private:
     QList<MapPoint*> _points;
