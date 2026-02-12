@@ -8,6 +8,7 @@ import map.editor.components
 EditorMap {
     id: editorMap
     
+    //! 编辑模式选择工具栏
     MapEditorToolBar {
         id: editorMapTool
         z: 1
@@ -18,6 +19,7 @@ EditorMap {
         }
     }
 
+    //! 编辑操作工具栏
     MapEditorActionBar {
         id: editorMapAction
         z: 1
@@ -44,10 +46,9 @@ EditorMap {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true  
-                enabled: !app.editorController.locked
                 acceptedButtons: Qt.LeftButton
                 onClicked: (mouse) => {
-                    if (mouse.modifiers & Qt.ControlModifier) {
+                    if (mouse.modifiers & Qt.ControlModifier) { //! Ctrl+点击可以多选
                         app.editorController.setSelectedItem(modelData.uuid)
                     } else {
                         app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
@@ -73,6 +74,31 @@ EditorMap {
         }
     }
 
+    //! 线列表
+    MapItemView {
+        id: mapLinestringListView
+        enabled: !app.editorController.locked && app.editorController.editMode === MapEditorController.LINESTRING
+        z: 1
+        model: app.editorController.mapLineStrings
+        delegate: MapLinestringItem {
+            id: _mapLinestringItem
+            map: editorMap
+            lineColor: modelData.selected ? "blue" : "white"
+            pointColor: "blue"
+
+            closed: modelData.closed
+            selected: modelData.selected
+            mapPoints: modelData.mapPoints
+
+            onLinSstringClicked: {
+                app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
+            }
+            onPointClicked: (uuid) => {
+                app.editorController.setSelectedItemAndClearOthers(uuid)
+            }
+        }
+    }
+
     //! 多边形列表
     MapItemView {
         id: mapPolygonListView
@@ -83,7 +109,8 @@ EditorMap {
             id: _mapPolygonItem
             map: editorMap
             color: "white"
-            edgeColor: "blue"
+            lineColor: "blue"
+            pointColor: "blue"
 
             closed: modelData.closed
             selected: modelData.selected
@@ -93,8 +120,7 @@ EditorMap {
                 app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
             }
             onPointClicked: (uuid) => {
-                app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
-                modelData.setSelectedPoint(uuid)
+                app.editorController.setSelectedItemAndClearOthers(uuid)
             }
         }
     }
@@ -113,7 +139,7 @@ EditorMap {
         //! 结束当前当前编辑对象的操作
         onClicked: (mouse) => {
             if (mouse.button === Qt.RightButton) {
-                app.editorController.finishCurrentEditing()
+                app.editorController.finishCurrentEditGeometry()
             }
         }
     }

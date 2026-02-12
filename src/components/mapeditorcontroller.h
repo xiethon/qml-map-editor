@@ -4,6 +4,7 @@
 #include <QVariantList>
 #include <QtPositioning/QGeoCoordinate>
 #include <QtQmlIntegration/QtQmlIntegration>
+#include "mapgeometry.h"
 
 class MapPoint;
 class MapLineString;
@@ -21,7 +22,7 @@ class MapEditorController : public QObject {
 
     Q_PROPERTY(QVariantList mapMarkers READ mapMarkers NOTIFY mapMarkersChanged)
     Q_PROPERTY(QVariantList mapPolygons READ mapPolygons NOTIFY mapPolygonsChanged)
-    // Q_PROPERTY(QVariantList mapLineStrings READ mapLineStrings NOTIFY mapLineStringsChanged)
+    Q_PROPERTY(QVariantList mapLineStrings READ mapLineStrings NOTIFY mapLineStringsChanged)
 
 public:
     enum EditMode { MARKER = 0, LINESTRING, POLYGON, CIRCLE, SQUARE }; //! 编辑模式
@@ -39,20 +40,22 @@ public:
 
     QVariantList mapMarkers() const; //! 获取所有标记点
     QVariantList mapPolygons() const; //! 获取所有多边形
-    // QVariantList mapLineStrings() const; //! 获取所有线
+    QVariantList mapLineStrings() const; //! 获取所有线
 
     Q_INVOKABLE void append(QGeoCoordinate coordinate); //! 添加
-    Q_INVOKABLE void clearAll(); //! 删除所有数据
+    Q_INVOKABLE void removeAll(); //! 删除所有数据
     Q_INVOKABLE void deleteSelected(); //! 删除选中数据
     Q_INVOKABLE void setSelectedItemAndClearOthers(const QString& uuid); //! 设置选中项，并清除其他项的选中状态
     Q_INVOKABLE void setSelectedItem(const QString& uuid); //! 设置选中项，不清除其他项的选中状态
-    Q_INVOKABLE void clearAllSelected(); //! 清除所有选中状态
 
     //! 结束当前当前编辑对象的操作
-    Q_INVOKABLE void finishCurrentEditing();
+    Q_INVOKABLE void finishCurrentEditGeometry();
 
 private:
     void clearAllSelectedForMode(EditMode mode); //! 清除当前编辑模式下所有选中状态
+    QList<MapGeometry*> getMapGeometrysByEditMode(const EditMode& mode); //! 根据uuid获取MapGeometry对象
+    void clearAllSelected(); //! 清除所有选中状态
+    void sendGeometryChangedSignal(const EditMode& modeEditor); //! 发送几何对象改变信号
 
 signals:
     void editModeChanged(); //! 编辑模式改变信号

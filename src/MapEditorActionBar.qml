@@ -19,7 +19,7 @@ ColumnLayout{
         source: "qrc:/qt/qml/map/editor/assets/clean.svg"
         toolTipText: qsTr("Clear All")
         enabled: !app.editorController.locked
-        onClicked: app.editorController.clearAll()
+        onClicked: app.editorController.removeAll()
     }
 
     //! 删除按钮

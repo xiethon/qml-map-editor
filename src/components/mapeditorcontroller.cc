@@ -1,7 +1,7 @@
 #include "mapeditorcontroller.h"
 #include "mappoint.h"
 #include "mappolygon.h"
-// #include "maplinestring.h"
+#include "maplinestring.h"
 
 MapEditorController::MapEditorController(QObject* parent) : QObject(parent) {}
 
@@ -49,19 +49,18 @@ QVariantList MapEditorController::mapPolygons() const {
     }
     return list;
 }
-// QVariantList MapEditorController::mapLineStrings() const {
-//     QVariantList list;
-//     for (const auto& line : _map_linestrings) {
-//         list.append(QVariant::fromValue(line));
-//     }
-//     if (_current_linestring) {
-//         list.append(QVariant::fromValue(_current_linestring));
-//     }
-//     return list;
-// }
+
+//! 获取所有线
+QVariantList MapEditorController::mapLineStrings() const {
+    QVariantList list;
+    for (const auto& linestring : _map_linestrings) {
+        list.append(QVariant::fromValue(linestring));
+    }
+    return list;
+}
 
 //! 删除所有数据
-void MapEditorController::clearAll() {
+void MapEditorController::removeAll() {
     for (MapPoint* point : _map_markers) {
         point->deleteLater();
     }
@@ -73,39 +72,52 @@ void MapEditorController::clearAll() {
     }
     _map_polygons.clear();
     emit mapPolygonsChanged();
+
+    for (MapLineString* linestring : _map_linestrings) {
+        linestring->deleteLater();
+    }
+    _map_linestrings.clear();
+    emit mapLineStringsChanged();
 }
 
 //! 删除选中数据
 void MapEditorController::deleteSelected() {
+    auto removeSelected = [](auto& list, auto&& changedSignal) {
+        auto it = list.begin();
+        bool changed = false;
+        while (it != list.end()) {
+            if ((*it)->selected()) {
+                (*it)->deleteLater();
+                it = list.erase(it);
+                changed = true;
+            } else if ((*it)->hasChildren()) {
+                (*it)->removeSelectedChild();
+                if (!(*it)->valid()) {
+                    (*it)->deleteLater();
+                    it = list.erase(it);
+                    changed = true;
+                } else {
+                    ++it;
+                }
+            } else {
+                ++it;
+            }
+        }
+        if (changed) {
+            changedSignal();
+        }
+    };
+
     switch (_edit_mode) {
-        case EditMode::MARKER: {
-            auto it = _map_markers.begin();
-            while (it != _map_markers.end()) {
-                if ((*it)->selected()) {
-                    (*it)->deleteLater();
-                    it = _map_markers.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-            emit mapMarkersChanged();
+        case EditMode::MARKER:
+            removeSelected(_map_markers, [this]() { emit mapMarkersChanged(); });
             break;
-        }
         case EditMode::LINESTRING:
+            removeSelected(_map_linestrings, [this]() { emit mapLineStringsChanged(); });
             break;
-        case EditMode::POLYGON: {
-            auto it = _map_polygons.begin();
-            while (it != _map_polygons.end()) {
-                if ((*it)->selected()) {
-                    (*it)->deleteLater();
-                    it = _map_polygons.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-            emit mapPolygonsChanged();
+        case EditMode::POLYGON:
+            removeSelected(_map_polygons, [this]() { emit mapPolygonsChanged(); });
             break;
-        }
         default:
             break;
     }
@@ -113,23 +125,9 @@ void MapEditorController::deleteSelected() {
 
 //! 清除当前编辑模式下所有选中状态
 void MapEditorController::clearAllSelectedForMode(EditMode mode) {
-    switch (mode) {
-        case EditMode::MARKER:
-            for (MapPoint* point : _map_markers) {
-                if (point->selected()) {
-                    point->setSelected(false);
-                }
-            }
-            break;
-        case EditMode::LINESTRING:
-            break;
-        case EditMode::POLYGON:
-            for (MapPolygon* polygon : _map_polygons) {
-                polygon->setSelected(false);
-            }
-            break;
-        default:
-            break;
+    auto geometrys = getMapGeometrysByEditMode(mode);
+    for (auto& geometry : geometrys) {
+        geometry->setSelected(false);
     }
 }
 
@@ -143,104 +141,164 @@ void MapEditorController::clearAllSelected() {
 //! 设置选中项，并清除当前编辑模式下其他项的选中状态
 void MapEditorController::setSelectedItemAndClearOthers(const QString& uuid) {
     clearAllSelected();
-    switch (_edit_mode) {
-        case EditMode::MARKER: {
-            for (const auto& point : _map_markers) {
-                if (point->uuid() == uuid) {
-                    point->setSelected(true);
-                    return;
+    auto geometrys = getMapGeometrysByEditMode(_edit_mode);
+    for (auto& geometry : geometrys) {
+        if (geometry->uuid() == uuid) {
+            geometry->setSelected(true);
+            return;
+        } else {
+            if (geometry->hasChildren()) {
+                auto children = geometry->children();
+                for (auto& child : children) {
+                    if (child->uuid() == uuid) {
+                        child->setSelected(true);
+                        return;
+                    }
                 }
             }
-            break;
         }
-        case EditMode::LINESTRING:
-            break;
-        case EditMode::POLYGON: {
-            for (const auto& polygon : _map_polygons) {
-                if (polygon->uuid() == uuid) {
-                    polygon->setSelected(true);
-                    return;
-                }
-            }
-            break;
-        }
-        default:
-            break;
     }
 }
 
 //! 设置选中项
 void MapEditorController::setSelectedItem(const QString& uuid) {
-    for (const auto& point : _map_markers) {
-        if (point->uuid() == uuid) {
-            point->setSelected(true);
+    auto geometrys = getMapGeometrysByEditMode(_edit_mode);
+    for (auto& geometry : geometrys) {
+        if (geometry->uuid() == uuid) {
+            geometry->setSelected(true);
             return;
+        } else {
+            if (geometry->hasChildren()) {
+                auto children = geometry->children();
+                for (auto& child : children) {
+                    if (child->uuid() == uuid) {
+                        child->setSelected(true);
+                        return;
+                    }
+                }
+            }
         }
     }
 }
 
 //! 添加操作
 void MapEditorController::append(QGeoCoordinate coordinate) {
-    switch (_edit_mode) {
-        case EditMode::MARKER: {
-            clearAllSelectedForMode(EditMode::MARKER);
-            MapPoint* point = new MapPoint(coordinate, this);
-            _map_markers.append(point);
-            emit mapMarkersChanged();
+    auto geometrys = getMapGeometrysByEditMode(_edit_mode);
+    bool appended = false;
+    for (auto& geometry : geometrys) {
+        if (geometry->hasChildren() && geometry->selected()) {
+            geometry->appendChild(coordinate);
+            appended = true;
+            sendGeometryChangedSignal(_edit_mode);
             break;
         }
-        case EditMode::LINESTRING:
-            break;
-        case EditMode::POLYGON: {
-            bool appended = false;
-            for (auto& polygon : _map_polygons) {
-                if (polygon->selected()) {
-                    polygon->append(coordinate);
-                    appended = true;
-                    emit mapPolygonsChanged();
-                    break;
-                }
+    }
+    if (!appended) {
+        clearAllSelected();
+        switch (_edit_mode) {
+            case EditMode::MARKER: {
+                _map_markers.append(new MapPoint(coordinate, this));
+                emit mapMarkersChanged();
+                break;
             }
-            if (!appended) {
-                clearAllSelected();
-                MapPolygon* polygon = new MapPolygon(this);
-                polygon->append(coordinate);
+            case EditMode::LINESTRING: {
+                auto linestring = new MapLineString(this);
+                linestring->appendChild(coordinate);
+                _map_linestrings.append(linestring);
+                emit mapLineStringsChanged();
+                break;
+            }
+            case EditMode::POLYGON: {
+                auto polygon = new MapPolygon(this);
+                polygon->appendChild(coordinate);
                 _map_polygons.append(polygon);
                 emit mapPolygonsChanged();
+                break;
             }
-            break;
+            default:
+                break;
         }
-        default:
-            break;
     }
 }
 
 //! 结束当前当前编辑对象的操作
-void MapEditorController::finishCurrentEditing() {
-    switch (_edit_mode) {
-        case EditMode::MARKER:
-            break;
-        case EditMode::LINESTRING:
-            break;
-        case EditMode::POLYGON: {
-            //! 如果多边形不是有效的则删除未闭合的多边形，如果当前编辑的多边形未闭合且是有效的，则进行闭合
-            auto it = _map_polygons.begin();
-            while (it != _map_polygons.end()) {
-                if (!(*it)->valid()) {
-                    (*it)->deleteLater();
-                    it = _map_polygons.erase(it);
-                } else {
-                    if ((*it)->selected() && !(*it)->closed() && (*it)->valid()) {
-                        (*it)->closeGeometry();
+void MapEditorController::finishCurrentEditGeometry() {
+    auto finishEdit = [](auto& list, auto&& changedSignal) {
+        auto it = list.begin();
+        bool changed = false;
+        //! 如果当前编辑对象未闭合: 如果是valid则闭合，否则删除
+        while (it != list.end()) {
+            if ((*it)->selected()) {
+                if (!(*it)->closed()) {
+                    if ((*it)->valid()) {
+                        (*it)->setClosed(true);
+                    } else {
+                        (*it)->deleteLater();
+                        it = list.erase(it);
+                        changed = true;
+                        continue;
                     }
-                    ++it;
                 }
             }
-            emit mapPolygonsChanged();
-            break;
+            ++it;
         }
+        if (changed) {
+            changedSignal();
+        }
+    };
+
+    switch (_edit_mode) {
+        case EditMode::MARKER:
+            finishEdit(_map_markers, [this]() { emit mapMarkersChanged(); });
+            break;
+        case EditMode::LINESTRING:
+            finishEdit(_map_linestrings, [this]() { emit mapLineStringsChanged(); });
+            break;
+        case EditMode::POLYGON:
+            finishEdit(_map_polygons, [this]() { emit mapPolygonsChanged(); });
+            break;
         default:
             break;
     }
     clearAllSelected();
+}
+
+QList<MapGeometry*> MapEditorController::getMapGeometrysByEditMode(const EditMode& mode) {
+    QList<MapGeometry*> list;
+    switch (mode) {
+        case EditMode::MARKER:
+            for (const auto& point : _map_markers) {
+                list.append(point);
+            }
+            break;
+        case EditMode::LINESTRING:
+            for (const auto& linestring : _map_linestrings) {
+                list.append(linestring);
+            }
+            break;
+        case EditMode::POLYGON:
+            for (const auto& polygon : _map_polygons) {
+                list.append(polygon);
+            }
+            break;
+        default:
+            break;
+    }
+    return list;
+}
+
+void MapEditorController::sendGeometryChangedSignal(const EditMode& modeEditor) {
+    switch (modeEditor) {
+        case EditMode::MARKER:
+            emit mapMarkersChanged();
+            break;
+        case EditMode::LINESTRING:
+            emit mapLineStringsChanged();
+            break;
+        case EditMode::POLYGON:
+            emit mapPolygonsChanged();
+            break;
+        default:
+            break;
+    }
 }
