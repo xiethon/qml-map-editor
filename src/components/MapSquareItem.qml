@@ -130,8 +130,14 @@ MapItemGroup {
             grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType
             onActiveTranslationChanged: {
                 if (active && _control.center) {
-                    // 边长 = 中心到边缘点距离 * 2
-                    _control.sideLength = _control.center.distanceTo(edgeItem.coordinate) * 2
+                    // 计算水平和垂直方向上的距离
+                    var coord = edgeItem.coordinate;
+                    var sameLatCoord = QtPositioning.coordinate(_control.center.latitude, coord.longitude);
+                    var sameLonCoord = QtPositioning.coordinate(coord.latitude, _control.center.longitude);
+                    var dx = _control.center.distanceTo(sameLatCoord);
+                    var dy = _control.center.distanceTo(sameLonCoord);
+                    // 边长 = 水平/垂直距离较大值 * 2
+                    _control.sideLength = Math.max(dx, dy) * 2;
                 }
             }
         }
@@ -147,8 +153,15 @@ MapItemGroup {
         acceptedButtons: Qt.RightButton
         onPositionChanged: (mouse) => {
             _control._mouseCoordinate = _control.map.toCoordinate(Qt.point(mouse.x, mouse.y));
-            // 边长 = 中心到鼠标距离 * 2
-            _control.sideLength = _control.center ? _control.center.distanceTo(_control._mouseCoordinate) * 2 : 0;
+            if (_control.center) {
+                // 计算水平和垂直方向上的距离
+                var sameLatCoord = QtPositioning.coordinate(_control.center.latitude, _control._mouseCoordinate.longitude);
+                var sameLonCoord = QtPositioning.coordinate(_control._mouseCoordinate.latitude, _control.center.longitude);
+                var dx = _control.center.distanceTo(sameLatCoord);
+                var dy = _control.center.distanceTo(sameLonCoord);
+                // 边长 = 水平/垂直距离较大值 * 2，确保正方形边经过鼠标点
+                _control.sideLength = Math.max(dx, dy) * 2;
+            }
         }
     }
 }

@@ -24,12 +24,6 @@ public:
     QGeoCoordinate center() const;
     void setCenter(const QGeoCoordinate& center);
 
-    //! 获取四个角点坐标（顺时针：左上、右上、右下、左下）
-    Q_INVOKABLE QGeoCoordinate topLeft() const;
-    Q_INVOKABLE QGeoCoordinate topRight() const;
-    Q_INVOKABLE QGeoCoordinate bottomRight() const;
-    Q_INVOKABLE QGeoCoordinate bottomLeft() const;
-
 signals:
     void sideLengthChanged();
     void centerChanged();
