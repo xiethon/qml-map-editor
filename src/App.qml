@@ -8,8 +8,8 @@ import map.editor.components
 Window {
     id: app
     visible: true
-    width: 800
-    height: 600
+    width: 1200
+    height: 800
     title: qsTr("")
 
     property alias editorController: editorController
