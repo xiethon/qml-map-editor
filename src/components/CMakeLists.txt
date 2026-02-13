@@ -4,6 +4,8 @@ set(qml_files
     MapLinestringItem.qml
     MapSegmentItem.qml
     MapPolygonItem.qml
+    MapCircleItem.qml
+    MapSquareItem.qml
 )
  
 set(sources
@@ -17,6 +19,10 @@ set(sources
     mappolygon.cc
     mapeditorcontroller.h
     mapeditorcontroller.cc
+    mapcircle.h
+    mapcircle.cc
+    mapsquare.h
+    mapsquare.cc
 )
 
 qt_add_library(map-editor-components STATIC)

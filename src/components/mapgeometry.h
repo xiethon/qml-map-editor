@@ -14,7 +14,7 @@ class MapGeometry : public QObject {
     QML_ELEMENT
 
 public:
-    enum class GeometryType { Unknown, Point, LineString, Polygon };
+    enum class GeometryType { Unknown, Point, LineString, Polygon, Circle, Square };
     Q_ENUM(GeometryType)
 
     Q_PROPERTY(QString uuid READ uuid CONSTANT) //! 唯一标识符
