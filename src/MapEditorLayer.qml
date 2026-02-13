@@ -125,6 +125,57 @@ EditorMap {
         }
     }
 
+    //! 圆列表
+    MapItemView {
+        id: mapCircleListView
+        enabled: !app.editorController.locked && app.editorController.editMode === MapEditorController.CIRCLE
+        z: 1
+        model: app.editorController.mapCircles
+        delegate: MapCircleItem {
+            id: _mapCircleItem
+            map: editorMap
+            color: modelData.selected ? "red" : "white"
+            borderColor: "blue"
+
+            selected: modelData.selected
+            center: modelData.center
+            radius: modelData.radius
+            closed: modelData.closed
+            
+            onCircleClicked: {
+                app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
+            }
+            onRadiusChanged: {
+                modelData.radius = radius
+            }
+        }
+    }
+
+    //! 正方形列表
+    MapItemView {
+        id: mapSquareListView
+        enabled: !app.editorController.locked && app.editorController.editMode === MapEditorController.SQUARE
+        z: 1
+        model: app.editorController.mapSquares
+        delegate: MapSquareItem {
+            id: _mapSquareItem
+            map: editorMap
+            color: modelData.selected ? "red" : "white"
+            borderColor: "blue"
+            
+            selected: modelData.selected
+            center: modelData.center
+            sideLength: modelData.sideLength
+            closed: modelData.closed
+            onSquareClicked: {
+                app.editorController.setSelectedItemAndClearOthers(modelData.uuid)
+            }
+            onSideLengthChanged: {
+                modelData.sideLength = sideLength
+            }
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         enabled: !app.editorController.locked
