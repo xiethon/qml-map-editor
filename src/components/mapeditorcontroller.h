@@ -9,6 +9,8 @@
 class MapPoint;
 class MapLineString;
 class MapPolygon;
+class MapCircle;
+class MapSquare;
 
 class MapEditorController : public QObject {
     Q_OBJECT
@@ -16,6 +18,8 @@ class MapEditorController : public QObject {
     Q_MOC_INCLUDE("mappoint.h")
     Q_MOC_INCLUDE("maplinestring.h")
     Q_MOC_INCLUDE("mappolygon.h")
+    Q_MOC_INCLUDE("mapcircle.h")
+    Q_MOC_INCLUDE("mapsquare.h")
 
     Q_PROPERTY(EditMode editMode READ editMode WRITE setEditMode NOTIFY editModeChanged)
     Q_PROPERTY(bool locked READ locked WRITE setLocked NOTIFY lockedChanged)
@@ -23,6 +27,8 @@ class MapEditorController : public QObject {
     Q_PROPERTY(QVariantList mapMarkers READ mapMarkers NOTIFY mapMarkersChanged)
     Q_PROPERTY(QVariantList mapPolygons READ mapPolygons NOTIFY mapPolygonsChanged)
     Q_PROPERTY(QVariantList mapLineStrings READ mapLineStrings NOTIFY mapLineStringsChanged)
+    Q_PROPERTY(QVariantList mapCircles READ mapCircles NOTIFY mapCirclesChanged)
+    Q_PROPERTY(QVariantList mapSquares READ mapSquares NOTIFY mapSquaresChanged)
 
 public:
     enum EditMode { MARKER = 0, LINESTRING, POLYGON, CIRCLE, SQUARE }; //! 编辑模式
@@ -41,6 +47,8 @@ public:
     QVariantList mapMarkers() const; //! 获取所有标记点
     QVariantList mapPolygons() const; //! 获取所有多边形
     QVariantList mapLineStrings() const; //! 获取所有线
+    QVariantList mapCircles() const; //! 获取所有圆
+    QVariantList mapSquares() const; //! 获取所有正方形
 
     Q_INVOKABLE void append(QGeoCoordinate coordinate); //! 添加
     Q_INVOKABLE void removeAll(); //! 删除所有数据
@@ -64,6 +72,8 @@ signals:
     void mapMarkersChanged(); //! 标记点列表改变信号
     void mapLineStringsChanged(); //! 线列表改变信号
     void mapPolygonsChanged(); //! 多边形列表改变信号
+    void mapCirclesChanged(); //! 圆列表改变信号
+    void mapSquaresChanged(); //! 正方形列表改变信号
 
 private:
     EditMode _edit_mode{EditMode::MARKER}; //! 当前编辑模式
@@ -72,4 +82,6 @@ private:
     QList<MapPoint*> _map_markers{}; //! MapMarker列表
     QList<MapLineString*> _map_linestrings{}; //! MapLineString列表
     QList<MapPolygon*> _map_polygons{}; //! MapPolygon列表
+    QList<MapCircle*> _map_circles{}; //! MapCircle列表
+    QList<MapSquare*> _map_squares{}; //! MapSquare列表
 };

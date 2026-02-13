@@ -2,6 +2,8 @@
 #include "mappoint.h"
 #include "mappolygon.h"
 #include "maplinestring.h"
+#include "mapcircle.h"
+#include "mapsquare.h"
 
 MapEditorController::MapEditorController(QObject* parent) : QObject(parent) {}
 
@@ -59,6 +61,24 @@ QVariantList MapEditorController::mapLineStrings() const {
     return list;
 }
 
+//! 获取所有圆
+QVariantList MapEditorController::mapCircles() const {
+    QVariantList list;
+    for (const auto& circle : _map_circles) {
+        list.append(QVariant::fromValue(circle));
+    }
+    return list;
+}
+
+//! 获取所有正方形
+QVariantList MapEditorController::mapSquares() const {
+    QVariantList list;
+    for (const auto& square : _map_squares) {
+        list.append(QVariant::fromValue(square));
+    }
+    return list;
+}
+
 //! 删除所有数据
 void MapEditorController::removeAll() {
     for (MapPoint* point : _map_markers) {
@@ -78,6 +98,17 @@ void MapEditorController::removeAll() {
     }
     _map_linestrings.clear();
     emit mapLineStringsChanged();
+
+    for (MapCircle* circle : _map_circles) {
+        circle->deleteLater();
+    }
+    _map_circles.clear();
+    emit mapCirclesChanged();
+    for (MapSquare* square : _map_squares) {
+        square->deleteLater();
+    }
+    _map_squares.clear();
+    emit mapSquaresChanged();
 }
 
 //! 删除选中数据
@@ -118,6 +149,12 @@ void MapEditorController::deleteSelected() {
         case EditMode::POLYGON:
             removeSelected(_map_polygons, [this]() { emit mapPolygonsChanged(); });
             break;
+        case EditMode::CIRCLE:
+            removeSelected(_map_circles, [this]() { emit mapCirclesChanged(); });
+            break;
+        case EditMode::SQUARE:
+            removeSelected(_map_squares, [this]() { emit mapSquaresChanged(); });
+            break;
         default:
             break;
     }
@@ -136,6 +173,8 @@ void MapEditorController::clearAllSelected() {
     clearAllSelectedForMode(EditMode::MARKER);
     clearAllSelectedForMode(EditMode::LINESTRING);
     clearAllSelectedForMode(EditMode::POLYGON);
+    clearAllSelectedForMode(EditMode::CIRCLE);
+    clearAllSelectedForMode(EditMode::SQUARE);
 }
 
 //! 设置选中项，并清除当前编辑模式下其他项的选中状态
@@ -215,6 +254,16 @@ void MapEditorController::append(QGeoCoordinate coordinate) {
                 emit mapPolygonsChanged();
                 break;
             }
+            case EditMode::CIRCLE: {
+                _map_circles.append(new MapCircle(coordinate, this));
+                emit mapCirclesChanged();
+                break;
+            }
+            case EditMode::SQUARE: {
+                _map_squares.append(new MapSquare(coordinate, this));
+                emit mapSquaresChanged();
+                break;
+            }
             default:
                 break;
         }
@@ -257,6 +306,12 @@ void MapEditorController::finishCurrentEditGeometry() {
         case EditMode::POLYGON:
             finishEdit(_map_polygons, [this]() { emit mapPolygonsChanged(); });
             break;
+        case EditMode::CIRCLE:
+            finishEdit(_map_circles, [this]() { emit mapCirclesChanged(); });
+            break;
+        case EditMode::SQUARE:
+            finishEdit(_map_squares, [this]() { emit mapSquaresChanged(); });
+            break;
         default:
             break;
     }
@@ -281,6 +336,16 @@ QList<MapGeometry*> MapEditorController::getMapGeometrysByEditMode(const EditMod
                 list.append(polygon);
             }
             break;
+        case EditMode::CIRCLE:
+            for (const auto& circle : _map_circles) {
+                list.append(circle);
+            }
+            break;
+        case EditMode::SQUARE:
+            for (const auto& square : _map_squares) {
+                list.append(square);
+            }
+            break;
         default:
             break;
     }
@@ -297,6 +362,12 @@ void MapEditorController::sendGeometryChangedSignal(const EditMode& modeEditor) 
             break;
         case EditMode::POLYGON:
             emit mapPolygonsChanged();
+            break;
+        case EditMode::CIRCLE:
+            emit mapCirclesChanged();
+            break;
+        case EditMode::SQUARE:
+            emit mapSquaresChanged();
             break;
         default:
             break;
